@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Configuration;
 using Microsoft.Playwright;
 using Reqnroll;
 
@@ -16,10 +17,15 @@ public class Hooks
     [BeforeScenario]
     public async Task BeforeScenario()
     {
+        var configuration =  new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
+        var testSettings = configuration.GetSection("TestSettings").Get<TestSettings>() ?? new TestSettings();
+
         var playWright = await Playwright.CreateAsync();
         var browser = await playWright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
         {
-            Headless = false
+            Headless = testSettings.Headless,
+            Channel = testSettings.Browser,
+            SlowMo = testSettings.SlowMoMilliseconds
         });
         _context.Page = await browser.NewPageAsync();
     }
