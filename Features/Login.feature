@@ -5,5 +5,5 @@ Feature:Login
     
     Scenario: successful login with a valid user
         Given I am on a Saucedemo login page
-        When I log in with user name "standard_user" And password "secret_sauce"  
+        When I log in with user name "git add " And password "secret_sauce"  
         Then I should see the inventory page. 
