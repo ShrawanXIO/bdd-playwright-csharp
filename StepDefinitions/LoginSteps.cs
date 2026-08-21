@@ -39,4 +39,14 @@ public class LoginSteps
             throw new Exception("Inventory page not displayed.");
         }
     }
+
+    [Then(@"I should see an error message ""(.*)""")]
+    public async Task ThenIShouldSeeAnErrorMessage(string expectedErrorMessage)
+    {
+        var actualErrorMessage = await _loginPage.GetErrorMessageAsync();
+        if (actualErrorMessage != expectedErrorMessage)
+        {
+            throw new Exception($"Expected error message: '{expectedErrorMessage}', but got: '{actualErrorMessage}'");
+        }
+    }
 }

@@ -7,3 +7,8 @@ Feature:Login
         Given I am on a Saucedemo login page
         When I log in with username "standard_user" And password "secret_sauce"  
         Then I should see the inventory page
+    
+    Scenario: Failed login with invalid credentials
+        Given I am on a Saucedemo login page
+        When I log in with username "astandard_user" And password "wrong_password"
+        Then I should see an error message "Epic sadface: Username and password do not match any user in this service"

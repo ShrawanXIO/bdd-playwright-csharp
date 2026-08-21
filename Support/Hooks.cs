@@ -8,10 +8,12 @@ namespace SauceDemoBDD.Support;
 public class Hooks
 {
     private readonly PlaywrightContext _context;
+    private readonly ScenarioContext _scenarioContext;
 
-    public Hooks(PlaywrightContext context)
+    public Hooks(PlaywrightContext context, ScenarioContext scenarioContext)
     {
         _context = context;
+        _scenarioContext = scenarioContext;
     }
 
     [BeforeScenario]
@@ -33,6 +35,14 @@ public class Hooks
     [AfterScenario]
     public async Task AfterScenario()
     {
+        if (_context.Page is not null && _scenarioContext.TestError is not null)
+        {
+            var fileName = $"{_scenarioContext.ScenarioInfo.Title}_{DateTime.Now:yyyyMMdd_HHmmss}.png";
+            var path = Path.Combine("ScreenshotsOnFailure", fileName);
+            Directory.CreateDirectory("ScreenshotsOnFailure");
+            await _context.Page.ScreenshotAsync(new PageScreenshotOptions { Path = path });
+        }
+
         if (_context.Page is not null)
         {
             await _context.Page.Context.Browser!.CloseAsync();
