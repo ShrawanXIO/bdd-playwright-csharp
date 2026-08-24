@@ -2,13 +2,10 @@ using Microsoft.Playwright;
 
 namespace SauceDemoBDD.Pages;
 
-public class LoginPage
+public class LoginPage : BasePage
 {
-    private readonly IPage _page;
-
-    public LoginPage(IPage page)
-    {
-        _page = page;
+    public LoginPage(IPage page) : base(page)
+    {     
     }
 
     private ILocator UsernameInput => _page.Locator("#user-name");
