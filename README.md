@@ -1,6 +1,6 @@
 # SauceDemo BDD Automation
 
-A behavior-driven test automation framework built with **Playwright**, **Reqnroll**, and **C#**, testing the login flow on [saucedemo.com](https://www.saucedemo.com/). Built as a hands-on learning project to understand BDD, the Page Object Model, and browser automation from first principles.
+A behavior-driven test automation framework built with **Playwright**, **Reqnroll**, and **C#**, testing login and cart flows on [saucedemo.com](https://www.saucedemo.com/). Built as a hands-on learning project to understand BDD, the Page Object Model, and browser automation from first principles.
 
 ## Tech Stack
 
@@ -12,14 +12,18 @@ A behavior-driven test automation framework built with **Playwright**, **Reqnrol
 
 ## Project Structure
 
-```
+```text
 SauceDemoBDD/
 ├── Features/                 # Gherkin .feature files (plain-English scenarios)
-│   └── Login.feature
+│   ├── Login.feature
+│   └── AddToCart.feature
 ├── StepDefinitions/          # C# glue code connecting Gherkin to actions
-│   └── LoginSteps.cs
+│   ├── LoginSteps.cs
+│   └── CartSteps.cs
 ├── Pages/                    # Page Object Model — one class per screen
-│   └── LoginPage.cs
+│   ├── BasePage.cs            # Shared IPage field, inherited by every page
+│   ├── LoginPage.cs
+│   └── InventoryPage.cs
 ├── Support/                  # Test infrastructure
 │   ├── Hooks.cs               # Browser lifecycle (open/close per scenario)
 │   ├── PlaywrightContext.cs   # Shared browser page across step classes
@@ -48,7 +52,7 @@ dotnet build
 dotnet test
 ```
 
-By default, this launches a real, visible browser and runs both scenarios end to end.
+By default, this launches a real, visible browser and runs every scenario end to end.
 
 ## Configuration
 
@@ -70,18 +74,20 @@ Browser behavior is controlled via `appsettings.json` — no code changes needed
 
 ## What This Project Demonstrates
 
-- **BDD with Gherkin** — scenarios written in plain English (`Given/When/Then`), translated into executable tests by Reqnroll
-- **Page Object Model** — UI locators and actions isolated in `Pages/`, keeping step definitions readable and maintainable
+- **BDD with Gherkin** — scenarios written in plain English (`Given/When/Then`), translated into executable tests by Reqnroll, including `Background:` for shared setup across scenarios in a feature
+- **Page Object Model with inheritance** — `BasePage` holds the shared `IPage` field and constructor; `LoginPage` and `InventoryPage` inherit from it instead of duplicating that setup
+- **Dynamic locators** — `InventoryPage.AddToCartAsync` builds a product's locator on the fly from its name, so one method works for any product on the page rather than one method per item
 - **Dependency injection via Reqnroll's context system** — `PlaywrightContext` is shared across `Hooks` and step classes without static state
 - **Configurable test execution** — browser choice, headless mode, and execution speed driven by external config, not hardcoded
 - **Automatic failure diagnostics** — screenshots captured on test failure, saved to `ScreenshotsOnFailure/`
 
 ## Scenarios Covered
 
-| Scenario | What it verifies |
-|---|---|
-| Successful login | Valid credentials land the user on the inventory page |
-| Failed login | Invalid credentials show the correct SauceDemo error message |
+| Feature     | Scenario            | What it verifies                                               |
+| ----------- | ------------------- | -------------------------------------------------------------- |
+| Login       | Successful login    | Valid credentials land the user on the inventory page          |
+| Login       | Failed login        | Invalid credentials show the correct SauceDemo error message   |
+| Add to Cart | Add a single item   | Adding a product updates the cart badge to the correct count   |
 
 ---
 *Built as a hands-on learning project — [Shrawan](https://github.com/ShrawanXIO)*
