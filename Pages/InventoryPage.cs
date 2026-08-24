@@ -9,6 +9,8 @@ public class InventoryPage : BasePage
     }
 
     private ILocator CartBadge => _page.Locator("[data-test='shopping-cart-badge']");
+    private ILocator CartLink => _page.Locator("[data-test='shopping-cart-link']");
+
   
 
     public async Task  AddToCartAsync(string productName)
@@ -22,6 +24,11 @@ public class InventoryPage : BasePage
     {
         var countText = await CartBadge.InnerTextAsync();
         return int.Parse(countText);
+    }
+
+    public async Task GoToCartAsync()
+    {
+        await CartLink.ClickAsync();
     }
 
 }
