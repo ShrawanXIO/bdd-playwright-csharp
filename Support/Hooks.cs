@@ -21,7 +21,13 @@ public class Hooks
     [BeforeScenario]
     public async Task BeforeScenario()
     {
-        var configuration =  new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
+        //var configuration =  new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
+
+        var configuration = new ConfigurationBuilder()
+                            .AddJsonFile("appsettings.json")
+                            .AddEnvironmentVariables()
+                            .Build();
+
         var testSettings = configuration.GetSection("TestSettings").Get<TestSettings>() ?? new TestSettings();
 
         var playWright = await Playwright.CreateAsync();
