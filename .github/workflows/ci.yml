@@ -29,6 +29,20 @@ jobs:
         env:
           TestSettings__Browser: chromium
           TestSettings__Headless: true
+      
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report
+          path: bin/Debug/net10.0/reports/
+
+      - name: Upload failure screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: failure-screenshots
+          path: bin/Debug/net10.0/ScreenshotsOnFailure/
 
 
 
