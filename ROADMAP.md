@@ -12,8 +12,8 @@ Plan of action for this project — what's built, what's next, and what's still 
 | Checkout feature | ✅ Done |
 | Configurable settings | ✅ Done |
 | Screenshot on failure | ✅ Done |
-| README | 🟡 Needs Checkout update |
-| Tags for selective runs | ⬜ Not started |
+| README | ✅ Done |
+| Tags for selective runs | ✅ Done |
 | Structured reporting | ⬜ Not started |
 | CI/CD (GitHub Actions) | ⬜ Not started |
 | Parallel execution | ⬜ Not started |
@@ -40,11 +40,11 @@ Plan of action for this project — what's built, what's next, and what's still 
 - [x] **Checkout** — `Checkout.feature`, `CheckoutSteps.cs`, `CartPage.cs`, `CheckoutPage.cs`
   - Full flow: login → add to cart → cart → checkout form → finish → confirmation
   - First multi-page-object scenario (4 Page Objects orchestrated in one test)
+- [x] **Update README** — reflect the Checkout feature and current 3-feature structure
+- [x] **Tags** (`@smoke`, `@regression`) — mark scenarios so subsets can run selectively (`dotnet test --filter`), makes more sense now that there are 3+ features to organize
 
 ## Next up
 
-- [ ] **Update README** — reflect the Checkout feature and current 3-feature structure
-- [ ] **Tags** (`@smoke`, `@regression`) — mark scenarios so subsets can run selectively (`dotnet test --filter`), makes more sense now that there are 3+ features to organize
 - [ ] **Structured reporting** — Reqnroll LivingDoc or similar, so a test run produces a readable HTML report instead of raw console output
 
 ## Backlog / ideas
