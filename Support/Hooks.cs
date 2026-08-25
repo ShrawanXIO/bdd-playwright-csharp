@@ -9,11 +9,13 @@ public class Hooks
 {
     private readonly PlaywrightContext _context;
     private readonly ScenarioContext _scenarioContext;
+    private readonly IReqnrollOutputHelper _OutputHelper;
 
-    public Hooks(PlaywrightContext context, ScenarioContext scenarioContext)
+    public Hooks(PlaywrightContext context, ScenarioContext scenarioContext, IReqnrollOutputHelper OutputHelper)
     {
         _context = context;
         _scenarioContext = scenarioContext;
+        _OutputHelper = OutputHelper;
     }
 
     [BeforeScenario]
@@ -41,6 +43,7 @@ public class Hooks
             var path = Path.Combine("ScreenshotsOnFailure", fileName);
             Directory.CreateDirectory("ScreenshotsOnFailure");
             await _context.Page.ScreenshotAsync(new PageScreenshotOptions { Path = path });
+            _OutputHelper.AddAttachment(Path.GetFullPath(path));
         }
 
         if (_context.Page is not null)
