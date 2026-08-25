@@ -21,14 +21,26 @@ jobs:
       - name: Build project
         run: dotnet build --no-restore
 
+      - name: Install Microsoft Edge
+        uses: browser-actions/setup-edge@v1
+
       - name: Install Playwright Browsers
         run: pwsh bin/Debug/net10.0/playwright.ps1 install --with-deps chromium
 
       - name: Run tests
         run: dotnet test --no-build
         env:
-          TestSettings__Browser: chromium
+          TestSettings__Browser: msedge
           TestSettings__Headless: true
+
+      # - name: Install Playwright Browsers
+      #   run: pwsh bin/Debug/net10.0/playwright.ps1 install --with-deps chromium
+
+      # - name: Run tests
+      #   run: dotnet test --no-build
+      #   env:
+      #     TestSettings__Browser: chromium
+      #     TestSettings__Headless: true
       
       - name: Upload test report
         if: always()
