@@ -140,12 +140,12 @@ View live runs and download artifacts from the [Actions tab](https://github.com/
 
 ## Scenarios Covered
 
-| Feature     | Scenario                                  | Tag           | What it verifies                                                     |
-| ----------- | ----------------------------------------- | -----------   | ------------------------------------------------------------------------  |
-| Login       | Successful login                          | `@smoke`      | Valid credentials land the user on the inventory page                    |
+| Feature     | Scenario                                    | Tag           | What it verifies                                                                 |
+| ----------- | -----------------------------------------   | -----------   | ------------------------------------------------------------------------         |
+| Login       | Successful login                            | `@smoke`      | Valid credentials land the user on the inventory page                            |
 | Login       | Invalid login attempts (3 examples)         | `@regression` | Wrong password, locked-out account, and invalid user each show the correct error |
-| Add to Cart | Add a single item                           | `@regression` | Adding a product updates the cart badge to the correct count             |
-| Checkout    | Complete checkout                             | `@smoke`      | A full login → cart → checkout flow ends in an order confirmation        |
+| Add to Cart | Add a single item                           | `@regression` | Adding a product updates the cart badge to the correct count                     |
+| Checkout    | Complete checkout                           | `@smoke`      | A full login → cart → checkout flow ends in an order confirmation                |
 
 ## Roadmap
 
