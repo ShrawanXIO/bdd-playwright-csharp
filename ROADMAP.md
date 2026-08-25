@@ -15,8 +15,10 @@ Plan of action for this project — what's built, what's next, and what's still 
 | README | ✅ Done |
 | Tags for selective runs | ✅ Done |
 | Structured reporting | ✅ Done |
-| CI/CD (GitHub Actions) | ⬜ Not started |
+| CI/CD (GitHub Actions) | ✅ Done |
 | Parallel execution | ⬜ Not started |
+
+All core roadmap items are complete. Remaining items are stretch goals in the backlog below.
 
 ## Completed
 
@@ -43,14 +45,12 @@ Plan of action for this project — what's built, what's next, and what's still 
 
 ### Infrastructure
 
-- [x] **Update README** — reflect the Checkout feature and current 3-feature structure
+- [x] **README** — reflects the full 3-feature structure, tags, reporting, and CI/CD
 - [x] **Tags** (`@smoke`, `@regression`) — mark scenarios so subsets can run selectively (`dotnet test --filter "Category=smoke"`)
 - [x] **Structured reporting** — Reqnroll's built-in HTML formatter, configured in `reqnroll.json`, generates a timestamped living-documentation report (`reports/reqnroll_report_{timestamp}.html`) on every run
 - [x] **Failure screenshots attached to reports** — via `IReqnrollOutputHelper.AddAttachment`, so a failed test's screenshot is one click away in Test Explorer, not just sitting in a folder
-
-## Next up
-
-- [ ] **CI/CD** — run `dotnet test` automatically on push via GitHub Actions, headless
+- [x] **CI/CD** — `.github/workflows/ci.yml` runs the full suite on every push to `main`, on a fresh Linux VM, using environment variables (`TestSettings__Browser`, `TestSettings__Headless`) to override local config for headless Chromium — no code changes needed between local and CI runs
+- [x] **CI artifacts** — the HTML report and any failure screenshots are uploaded as downloadable artifacts (`if: always()`, so they're captured even when the run fails), retained for 90 days on GitHub
 
 ## Backlog / ideas
 
@@ -58,11 +58,13 @@ Plan of action for this project — what's built, what's next, and what's still 
 - [ ] **Retry logic** — auto-retry a scenario once on failure before marking it failed, for flaky-test resilience
 - [ ] **More scenarios** — e.g. remove item from cart, multiple items in one order, sort/filter products on inventory page
 - [ ] **Data-driven scenarios** — `Scenario Outline` + `Examples` table for testing multiple login combinations at once
+- [ ] **Shorten artifact retention** — currently defaults to 90 days; could reduce via `retention-days` in the workflow if storage becomes a concern
 
 ## Notes for next session
 
 - Working directory: `E:\SauceDemoBDD`
 - Repo: [github.com/ShrawanXIO/bdd-playwright-csharp](https://github.com/ShrawanXIO/bdd-playwright-csharp)
-- Recurring gotcha to remember: Gherkin step text must match `[Given]/[When]/[Then]` attribute text **exactly**, including casing — this has caused most debugging sessions so far
+- Recurring gotcha to remember: Gherkin step text must match `[Given]/[When]/[Then]` attribute text **exactly**, including casing — this has caused most debugging sessions so far. The same casing rule bit us again in YAML (`on`/`push`/`jobs`/`steps` must be lowercase) — it's a pattern worth watching for in any config format, not just Gherkin.
 - `CartSteps.cs` owns the shared `Given I am logged in as "..."` step used in `Background:` across multiple features — don't redefine it elsewhere, causes ambiguous-step errors
-- HTML reports land in `bin/Debug/net10.0/reports/`, one per run — remember to `.gitignore` that folder, same as `ScreenshotsOnFailure/`
+- HTML reports land in `bin/Debug/net10.0/reports/`, one per run — `.gitignore`'d, same as `ScreenshotsOnFailure/`
+- CI overrides local config via environment variables (`TestSettings__Browser=chromium`, `TestSettings__Headless=true`) rather than a separate config file — `Hooks.cs` reads both `appsettings.json` and environment variables, with env vars taking precedence
