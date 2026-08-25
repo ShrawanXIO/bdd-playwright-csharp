@@ -7,7 +7,7 @@ A behavior-driven test automation framework built with **Playwright**, **Reqnrol
 - **C# (.NET 10)**
 - **Playwright** — browser automation
 - **Reqnroll** — BDD framework (Gherkin syntax, SpecFlow's maintained successor)
-- **NUnit** — test runner
+- **NUnit** — test runner, with parallel execution enabled
 - **Microsoft.Extensions.Configuration** — settings management (JSON + environment variable overrides)
 - **Reqnroll HTML Formatter** — living-documentation-style test reports
 - **GitHub Actions** — CI pipeline, runs the full suite on every push
@@ -35,7 +35,8 @@ SauceDemoBDD/
 ├── Support/                   # Test infrastructure
 │   ├── Hooks.cs                # Browser lifecycle, failure screenshots + report attachments
 │   ├── PlaywrightContext.cs    # Shared browser page across step classes
-│   └── TestSettings.cs         # Strongly-typed config model
+│   ├── TestSettings.cs         # Strongly-typed config model
+│   └── AssemblyInfo.cs         # Parallel execution settings
 ├── appsettings.json            # Browser, headless mode, slow-mo settings (local defaults)
 ├── reqnroll.json                # Reqnroll config incl. HTML report formatter
 ├── ROADMAP.md                   # Plan of action and progress tracking
@@ -62,7 +63,7 @@ dotnet build
 dotnet test
 ```
 
-By default, this launches a real, visible browser and runs every scenario end to end.
+By default, this launches real, visible browsers and runs every scenario end to end — in parallel (see below).
 
 Run only a subset by tag:
 
@@ -70,6 +71,18 @@ Run only a subset by tag:
 dotnet test --filter "Category=smoke"
 dotnet test --filter "Category=regression"
 ```
+
+## Parallel Execution
+
+Tests run concurrently by default, using per-scenario dependency injection (a fresh `PlaywrightContext` and browser per scenario, no shared or static state anywhere in the framework) to make this safe:
+
+```csharp
+// Support/AssemblyInfo.cs
+[assembly: Parallelizable(ParallelScope.All)]
+[assembly: LevelOfParallelism(3)]
+```
+
+`LevelOfParallelism(3)` caps how many scenarios run simultaneously — tune this to your machine's capacity.
 
 ## Configuration
 
@@ -116,10 +129,10 @@ Every push to `main` automatically triggers a GitHub Actions workflow (`.github/
 1. Checks out the code on a fresh Linux virtual machine
 2. Installs the .NET SDK and restores/builds the project
 3. Installs headless Chromium via Playwright
-4. Runs the full test suite (`TestSettings__Browser=chromium`, `TestSettings__Headless=true` set via environment variables — no code or config file changes needed)
+4. Runs the full test suite in parallel (`TestSettings__Browser=chromium`, `TestSettings__Headless=true` set via environment variables — no code or config file changes needed)
 5. Uploads the HTML report and any failure screenshots as downloadable **artifacts**, even if tests fail (`if: always()`), so a failed run can be fully diagnosed after the fact
 
-The workflow can also be triggered manually from the Actions tab (`workflow_dispatch`), which is useful for testing changes on a feature branch before merging to `main`.
+The workflow can also be triggered manually from the Actions tab (`workflow_dispatch`), useful for testing changes on a feature branch before merging to `main`.
 
 View live runs and download artifacts from the [Actions tab](https://github.com/ShrawanXIO/bdd-playwright-csharp/actions). Artifacts are retained for 90 days by default.
 
@@ -131,25 +144,26 @@ View live runs and download artifacts from the [Actions tab](https://github.com/
 - **Dynamic locators** — `InventoryPage.AddToCartAsync` builds a product's locator on the fly from its name, so one method works for any product on the page rather than one method per item
 - **Multi-page-object orchestration** — the Checkout scenario chains four Page Objects (`LoginPage` → `InventoryPage` → `CartPage` → `CheckoutPage`) in a single test, mirroring a real user journey across multiple screens
 - **Reused step definitions across features** — the login step defined in `CartSteps.cs` is reused as-is in `Checkout.feature`'s `Background:`, since Reqnroll matches steps project-wide, not per file
-- **Dependency injection via Reqnroll's context system** — `PlaywrightContext`, `ScenarioContext`, and `IReqnrollOutputHelper` are all shared across `Hooks` and step classes without static state
+- **Dependency injection via Reqnroll's context system** — `PlaywrightContext`, `ScenarioContext`, and `IReqnrollOutputHelper` are all shared across `Hooks` and step classes without static state — the same DI design that also makes parallel execution safe
+- **Parallel test execution** — enabled via NUnit's `[assembly: Parallelizable]`, safe because of the DI-based architecture, cutting total suite runtime noticeably
 - **Layered, overridable configuration** — JSON file for local defaults, environment variables to override in CI, without maintaining two separate config files
 - **Automatic failure diagnostics** — screenshots captured on test failure, attached directly to the test result via Reqnroll's Output API, and uploaded as CI artifacts
 - **Tagged scenarios** — `@smoke` and `@regression` tags allow selective runs (`dotnet test --filter "Category=smoke"`)
 - **Living-documentation HTML reports** — timestamped, per-run reports generated automatically via Reqnroll's built-in formatter
-- **CI/CD** — the full suite runs headlessly on every push via GitHub Actions, on a platform-independent configuration, proving the framework isn't tied to any one machine
+- **CI/CD** — the full suite runs headlessly, in parallel, on every push via GitHub Actions, on a platform-independent configuration, proving the framework isn't tied to any one machine
 
 ## Scenarios Covered
 
-| Feature     | Scenario                                    | Tag           | What it verifies                                                                 |
-| ----------- | -----------------------------------------   | -----------   | ------------------------------------------------------------------------         |
-| Login       | Successful login                            | `@smoke`      | Valid credentials land the user on the inventory page                            |
-| Login       | Invalid login attempts (3 examples)         | `@regression` | Wrong password, locked-out account, and invalid user each show the correct error |
-| Add to Cart | Add a single item                           | `@regression` | Adding a product updates the cart badge to the correct count                     |
-| Checkout    | Complete checkout                           | `@smoke`      | A full login → cart → checkout flow ends in an order confirmation                |
+| Feature     | Scenario                                    | Tag           | What it verifies                                                                    |
+| ----------- | -----------------------------------------   | -----------   | ------------------------------------------------------------------------            |
+| Login       | Successful login                            | `@smoke`      | Valid credentials land the user on the inventory page                               |
+| Login       | Invalid login attempts (3 examples)         | `@regression` | Wrong password, locked-out account, and invalid user each show the correct error    |
+| Add to Cart | Add a single item                           | `@regression` | Adding a product updates the cart badge to the correct count                        |
+| Checkout    | Complete checkout                           | `@smoke`      | A full login → cart → checkout flow ends in an order confirmation                   |
 
 ## Roadmap
 
-See [ROADMAP.md](./ROADMAP.md) for what's built and what's planned next (parallel execution, retry logic, more scenarios).
+See [ROADMAP.md](./ROADMAP.md) for the full history of what's built and remaining backlog ideas.
 
 ---
 *Built as a hands-on learning project — [Shrawan](https://github.com/ShrawanXIO)*

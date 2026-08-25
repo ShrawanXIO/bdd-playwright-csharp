@@ -1,8 +1,8 @@
 # Roadmap
 
-Plan of action for this project — what's built, what's next, and what's still just an idea. Updated as work progresses.
+Plan of action for this project — what's built, what's next, and what's still just an idea.
 
-## Status at a glance
+## Status: Core roadmap complete ✅
 
 | Area | Status |
 | ---------------------- | -------------- |
@@ -17,9 +17,9 @@ Plan of action for this project — what's built, what's next, and what's still 
 | Structured reporting | ✅ Done |
 | CI/CD (GitHub Actions) | ✅ Done |
 | Data-driven scenarios | ✅ Done |
-| Parallel execution | ⬜ Not started |
+| Parallel execution | ✅ Done |
 
-All core roadmap items are complete. Remaining items are stretch goals in the backlog below.
+Every item originally planned for this project is complete and verified both locally and in CI. Remaining items below are optional stretch goals, not required for the project to be considered done.
 
 ## Completed
 
@@ -27,7 +27,7 @@ All core roadmap items are complete. Remaining items are stretch goals in the ba
 
 - [x] Reqnroll + Playwright + NUnit project scaffolded
 - [x] `BasePage` — shared `IPage` field and constructor, inherited by every Page Object
-- [x] `PlaywrightContext` — shared browser page injected across Hooks and step classes (no static state)
+- [x] `PlaywrightContext` — shared browser page injected across Hooks and step classes (no static state) — the same design that also makes parallel execution safe
 - [x] `Hooks.cs` — opens a fresh browser per scenario, closes it after
 - [x] `appsettings.json` + `TestSettings.cs` — configurable browser (Chrome/Edge), headless mode, and SlowMo, no code changes needed to switch
 - [x] Screenshot-on-failure — `AfterScenario` checks `ScenarioContext.TestError` and saves a `.png` to `ScreenshotsOnFailure/`
@@ -46,28 +46,33 @@ All core roadmap items are complete. Remaining items are stretch goals in the ba
 
 ### Infrastructure
 
-- [x] **README** — reflects the full 3-feature structure, tags, reporting, CI/CD, and data-driven testing
+- [x] **README** — reflects the full 3-feature structure, tags, reporting, CI/CD, data-driven testing, and parallel execution
 - [x] **Tags** (`@smoke`, `@regression`) — mark scenarios so subsets can run selectively (`dotnet test --filter "Category=smoke"`)
 - [x] **Structured reporting** — Reqnroll's built-in HTML formatter, configured in `reqnroll.json`, generates a timestamped living-documentation report (`reports/reqnroll_report_{timestamp}.html`) on every run
 - [x] **Failure screenshots attached to reports** — via `IReqnrollOutputHelper.AddAttachment`, so a failed test's screenshot is one click away in Test Explorer, not just sitting in a folder
-- [x] **CI/CD** — `.github/workflows/ci.yml` runs the full suite on every push to `main`, on a fresh Linux VM, using environment variables (`TestSettings__Browser`, `TestSettings__Headless`) to override local config for headless Chromium — no code changes needed between local and CI runs. Also supports manual runs via `workflow_dispatch`, useful for testing changes on a branch before merging
-- [x] **CI artifacts** — the HTML report and any failure screenshots are uploaded as downloadable artifacts (`if: always()`, so they're captured even when the run fails), retained for 90 days on GitHub
-- [x] **Data-driven scenarios** — converted the failed-login scenario into a `Scenario Outline` with an `Examples` table (3 rows: wrong password, locked-out account, invalid user); reuses existing step definitions and `LoginPage` methods with zero new C# code
+- [x] **CI/CD** — `.github/workflows/ci.yml` runs the full suite on every push to `main`, on a fresh Linux VM, using environment variables (`TestSettings__Browser`, `TestSettings__Headless`) to override local config for headless Chromium. Also supports manual runs via `workflow_dispatch`. **Verified passing on GitHub's own infrastructure (7/7, 45s), not just locally.**
+- [x] **CI artifacts** — the HTML report and any failure screenshots are uploaded as downloadable artifacts (`if: always()`), retained for 90 days
+- [x] **Data-driven scenarios** — converted the failed-login scenario into a `Scenario Outline` with an `Examples` table (3 rows); reuses existing step definitions and `LoginPage` methods with zero new C# code
+- [x] **Parallel execution** — `[assembly: Parallelizable(ParallelScope.All)]` + `[assembly: LevelOfParallelism(3)]` in `Support/AssemblyInfo.cs`; safe because of the DI-based architecture with no shared state. Confirmed both locally (~31s) and in CI (~45s)
 
-## Backlog / ideas
+## Backlog / ideas (optional, not required)
 
-- [ ] **Parallel execution** — run scenarios concurrently using isolated `BrowserContext`s
 - [ ] **Retry logic** — auto-retry a scenario once on failure before marking it failed, for flaky-test resilience
 - [ ] **More scenarios** — e.g. remove item from cart, multiple items in one order, sort/filter products on inventory page
-- [ ] **More data-driven scenarios** — apply `Scenario Outline` to checkout (e.g. invalid/missing form fields) the same way it was applied to login
-- [ ] **Shorten artifact retention** — currently defaults to 90 days; could reduce via `retention-days` in the workflow if storage becomes a concern
+- [ ] **More data-driven scenarios** — apply `Scenario Outline` to checkout (e.g. invalid/missing form fields)
+- [ ] **Shorten artifact retention** — currently defaults to 90 days; could reduce via `retention-days` in the workflow
 
-## Notes for next session
+## Next project
+
+With this framework's core roadmap complete, the next planned project is a **separate** repo focused on API testing with Playwright's `APIRequestContext` — no browser, pure HTTP request/response validation. Kept as its own repo rather than folded into this one, for a cleaner portfolio story (two focused projects rather than one doing everything).
+
+## Notes for future reference
 
 - Working directory: `E:\SauceDemoBDD`
 - Repo: [github.com/ShrawanXIO/bdd-playwright-csharp](https://github.com/ShrawanXIO/bdd-playwright-csharp)
-- Recurring gotcha to remember: Gherkin step text must match `[Given]/[When]/[Then]` attribute text **exactly**, including casing — this has caused most debugging sessions so far. The same casing rule bit us again in YAML (`on`/`push`/`jobs`/`steps` must be lowercase) — it's a pattern worth watching for in any config format, not just Gherkin.
+- Recurring gotcha: Gherkin step text must match `[Given]/[When]/[Then]` attribute text **exactly**, including casing. Same rule bit us in YAML (`on`/`push`/`jobs`/`steps` must be lowercase) — a pattern worth watching for in any config format.
 - `CartSteps.cs` owns the shared `Given I am logged in as "..."` step used in `Background:` across multiple features — don't redefine it elsewhere, causes ambiguous-step errors
 - HTML reports land in `bin/Debug/net10.0/reports/`, one per run — `.gitignore`'d, same as `ScreenshotsOnFailure/`
-- CI overrides local config via environment variables (`TestSettings__Browser=chromium`, `TestSettings__Headless=true`) rather than a separate config file — `Hooks.cs` reads both `appsettings.json` and environment variables, with env vars taking precedence
-- `Scenario Outline` + `Examples` requires zero new step definitions or Page Object changes — placeholders like `<username>` are substituted with real values before step matching ever happens, so existing `(.*)` capture-group steps just work
+- CI overrides local config via environment variables (`TestSettings__Browser=chromium`, `TestSettings__Headless=true`) rather than a separate config file
+- `Scenario Outline` + `Examples` requires zero new step definitions or Page Object changes — placeholders are substituted with real values before step matching happens
+- Parallel execution works safely here specifically because every scenario gets its own `PlaywrightContext` and browser instance via dependency injection — no static or shared state anywhere in the framework
