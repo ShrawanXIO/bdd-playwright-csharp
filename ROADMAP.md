@@ -14,7 +14,7 @@ Plan of action for this project — what's built, what's next, and what's still 
 | Screenshot on failure | ✅ Done |
 | README | ✅ Done |
 | Tags for selective runs | ✅ Done |
-| Structured reporting | ⬜ Not started |
+| Structured reporting | ✅ Done |
 | CI/CD (GitHub Actions) | ⬜ Not started |
 | Parallel execution | ⬜ Not started |
 
@@ -32,24 +32,28 @@ Plan of action for this project — what's built, what's next, and what's still 
 ### Features
 
 - [x] **Login** — `Login.feature`, `LoginSteps.cs`, `LoginPage.cs`
-  - Successful login with valid credentials
-  - Failed login with invalid credentials (error message check)
+  - Successful login with valid credentials (`@smoke`)
+  - Failed login with invalid credentials (`@regression`, error message check)
 - [x] **Add to Cart** — `AddToCart.feature`, `CartSteps.cs`, `InventoryPage.cs`
-  - Add a single item, verify cart badge count
+  - Add a single item, verify cart badge count (`@regression`)
   - Uses `Background:` for shared login setup
 - [x] **Checkout** — `Checkout.feature`, `CheckoutSteps.cs`, `CartPage.cs`, `CheckoutPage.cs`
-  - Full flow: login → add to cart → cart → checkout form → finish → confirmation
+  - Full flow: login → add to cart → cart → checkout form → finish → confirmation (`@smoke`)
   - First multi-page-object scenario (4 Page Objects orchestrated in one test)
+
+### Infrastructure
+
 - [x] **Update README** — reflect the Checkout feature and current 3-feature structure
-- [x] **Tags** (`@smoke`, `@regression`) — mark scenarios so subsets can run selectively (`dotnet test --filter`), makes more sense now that there are 3+ features to organize
+- [x] **Tags** (`@smoke`, `@regression`) — mark scenarios so subsets can run selectively (`dotnet test --filter "Category=smoke"`)
+- [x] **Structured reporting** — Reqnroll's built-in HTML formatter, configured in `reqnroll.json`, generates a timestamped living-documentation report (`reports/reqnroll_report_{timestamp}.html`) on every run
+- [x] **Failure screenshots attached to reports** — via `IReqnrollOutputHelper.AddAttachment`, so a failed test's screenshot is one click away in Test Explorer, not just sitting in a folder
 
 ## Next up
 
-- [ ] **Structured reporting** — Reqnroll LivingDoc or similar, so a test run produces a readable HTML report instead of raw console output
+- [ ] **CI/CD** — run `dotnet test` automatically on push via GitHub Actions, headless
 
 ## Backlog / ideas
 
-- [ ] **CI/CD** — run `dotnet test` automatically on push via GitHub Actions, headless
 - [ ] **Parallel execution** — run scenarios concurrently using isolated `BrowserContext`s
 - [ ] **Retry logic** — auto-retry a scenario once on failure before marking it failed, for flaky-test resilience
 - [ ] **More scenarios** — e.g. remove item from cart, multiple items in one order, sort/filter products on inventory page
@@ -61,3 +65,4 @@ Plan of action for this project — what's built, what's next, and what's still 
 - Repo: [github.com/ShrawanXIO/bdd-playwright-csharp](https://github.com/ShrawanXIO/bdd-playwright-csharp)
 - Recurring gotcha to remember: Gherkin step text must match `[Given]/[When]/[Then]` attribute text **exactly**, including casing — this has caused most debugging sessions so far
 - `CartSteps.cs` owns the shared `Given I am logged in as "..."` step used in `Background:` across multiple features — don't redefine it elsewhere, causes ambiguous-step errors
+- HTML reports land in `bin/Debug/net10.0/reports/`, one per run — remember to `.gitignore` that folder, same as `ScreenshotsOnFailure/`
