@@ -119,11 +119,14 @@ Every push to `main` automatically triggers a GitHub Actions workflow (`.github/
 4. Runs the full test suite (`TestSettings__Browser=chromium`, `TestSettings__Headless=true` set via environment variables — no code or config file changes needed)
 5. Uploads the HTML report and any failure screenshots as downloadable **artifacts**, even if tests fail (`if: always()`), so a failed run can be fully diagnosed after the fact
 
+The workflow can also be triggered manually from the Actions tab (`workflow_dispatch`), which is useful for testing changes on a feature branch before merging to `main`.
+
 View live runs and download artifacts from the [Actions tab](https://github.com/ShrawanXIO/bdd-playwright-csharp/actions). Artifacts are retained for 90 days by default.
 
 ## What This Project Demonstrates
 
 - **BDD with Gherkin** — scenarios written in plain English (`Given/When/Then`), translated into executable tests by Reqnroll, including `Background:` for shared setup across scenarios in a feature
+- **Data-driven scenarios** — `Scenario Outline` + `Examples` generates multiple independent test runs (valid, invalid, and locked-out login combinations) from a single template, reusing existing step definitions without any new C# code — the BDD equivalent of NUnit's `[TestCase]`, but readable by non-technical stakeholders
 - **Page Object Model with inheritance** — `BasePage` holds the shared `IPage` field and constructor; every other Page Object inherits from it instead of duplicating that setup
 - **Dynamic locators** — `InventoryPage.AddToCartAsync` builds a product's locator on the fly from its name, so one method works for any product on the page rather than one method per item
 - **Multi-page-object orchestration** — the Checkout scenario chains four Page Objects (`LoginPage` → `InventoryPage` → `CartPage` → `CheckoutPage`) in a single test, mirroring a real user journey across multiple screens
@@ -137,12 +140,12 @@ View live runs and download artifacts from the [Actions tab](https://github.com/
 
 ## Scenarios Covered
 
-| Feature     | Scenario                | Tag           | What it verifies                                                    |
-| ----------- | -------------------     | -----------   | ------------------------------------------------------------------  |
-| Login       | Successful login        | `@smoke`      | Valid credentials land the user on the inventory page               |
-| Login       | Failed login            | `@regression` | Invalid credentials show the correct SauceDemo error message        |
-| Add to Cart | Add a single item       | `@regression` | Adding a product updates the cart badge to the correct count        |
-| Checkout    | Complete checkout       | `@smoke`      | A full login → cart → checkout flow ends in an order confirmation   |
+| Feature     | Scenario                                  | Tag           | What it verifies                                                     |
+| ----------- | ----------------------------------------- | -----------   | ------------------------------------------------------------------------  |
+| Login       | Successful login                          | `@smoke`      | Valid credentials land the user on the inventory page                    |
+| Login       | Invalid login attempts (3 examples)         | `@regression` | Wrong password, locked-out account, and invalid user each show the correct error |
+| Add to Cart | Add a single item                           | `@regression` | Adding a product updates the cart badge to the correct count             |
+| Checkout    | Complete checkout                             | `@smoke`      | A full login → cart → checkout flow ends in an order confirmation        |
 
 ## Roadmap
 

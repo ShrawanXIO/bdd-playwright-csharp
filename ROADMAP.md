@@ -16,6 +16,7 @@ Plan of action for this project — what's built, what's next, and what's still 
 | Tags for selective runs | ✅ Done |
 | Structured reporting | ✅ Done |
 | CI/CD (GitHub Actions) | ✅ Done |
+| Data-driven scenarios | ✅ Done |
 | Parallel execution | ⬜ Not started |
 
 All core roadmap items are complete. Remaining items are stretch goals in the backlog below.
@@ -35,7 +36,7 @@ All core roadmap items are complete. Remaining items are stretch goals in the ba
 
 - [x] **Login** — `Login.feature`, `LoginSteps.cs`, `LoginPage.cs`
   - Successful login with valid credentials (`@smoke`)
-  - Failed login with invalid credentials (`@regression`, error message check)
+  - Invalid login attempts as a `Scenario Outline` with 3 `Examples` rows — wrong password, locked-out account, invalid user (`@regression`)
 - [x] **Add to Cart** — `AddToCart.feature`, `CartSteps.cs`, `InventoryPage.cs`
   - Add a single item, verify cart badge count (`@regression`)
   - Uses `Background:` for shared login setup
@@ -45,19 +46,20 @@ All core roadmap items are complete. Remaining items are stretch goals in the ba
 
 ### Infrastructure
 
-- [x] **README** — reflects the full 3-feature structure, tags, reporting, and CI/CD
+- [x] **README** — reflects the full 3-feature structure, tags, reporting, CI/CD, and data-driven testing
 - [x] **Tags** (`@smoke`, `@regression`) — mark scenarios so subsets can run selectively (`dotnet test --filter "Category=smoke"`)
 - [x] **Structured reporting** — Reqnroll's built-in HTML formatter, configured in `reqnroll.json`, generates a timestamped living-documentation report (`reports/reqnroll_report_{timestamp}.html`) on every run
 - [x] **Failure screenshots attached to reports** — via `IReqnrollOutputHelper.AddAttachment`, so a failed test's screenshot is one click away in Test Explorer, not just sitting in a folder
-- [x] **CI/CD** — `.github/workflows/ci.yml` runs the full suite on every push to `main`, on a fresh Linux VM, using environment variables (`TestSettings__Browser`, `TestSettings__Headless`) to override local config for headless Chromium — no code changes needed between local and CI runs
+- [x] **CI/CD** — `.github/workflows/ci.yml` runs the full suite on every push to `main`, on a fresh Linux VM, using environment variables (`TestSettings__Browser`, `TestSettings__Headless`) to override local config for headless Chromium — no code changes needed between local and CI runs. Also supports manual runs via `workflow_dispatch`, useful for testing changes on a branch before merging
 - [x] **CI artifacts** — the HTML report and any failure screenshots are uploaded as downloadable artifacts (`if: always()`, so they're captured even when the run fails), retained for 90 days on GitHub
+- [x] **Data-driven scenarios** — converted the failed-login scenario into a `Scenario Outline` with an `Examples` table (3 rows: wrong password, locked-out account, invalid user); reuses existing step definitions and `LoginPage` methods with zero new C# code
 
 ## Backlog / ideas
 
 - [ ] **Parallel execution** — run scenarios concurrently using isolated `BrowserContext`s
 - [ ] **Retry logic** — auto-retry a scenario once on failure before marking it failed, for flaky-test resilience
 - [ ] **More scenarios** — e.g. remove item from cart, multiple items in one order, sort/filter products on inventory page
-- [ ] **Data-driven scenarios** — `Scenario Outline` + `Examples` table for testing multiple login combinations at once
+- [ ] **More data-driven scenarios** — apply `Scenario Outline` to checkout (e.g. invalid/missing form fields) the same way it was applied to login
 - [ ] **Shorten artifact retention** — currently defaults to 90 days; could reduce via `retention-days` in the workflow if storage becomes a concern
 
 ## Notes for next session
@@ -68,3 +70,4 @@ All core roadmap items are complete. Remaining items are stretch goals in the ba
 - `CartSteps.cs` owns the shared `Given I am logged in as "..."` step used in `Background:` across multiple features — don't redefine it elsewhere, causes ambiguous-step errors
 - HTML reports land in `bin/Debug/net10.0/reports/`, one per run — `.gitignore`'d, same as `ScreenshotsOnFailure/`
 - CI overrides local config via environment variables (`TestSettings__Browser=chromium`, `TestSettings__Headless=true`) rather than a separate config file — `Hooks.cs` reads both `appsettings.json` and environment variables, with env vars taking precedence
+- `Scenario Outline` + `Examples` requires zero new step definitions or Page Object changes — placeholders like `<username>` are substituted with real values before step matching ever happens, so existing `(.*)` capture-group steps just work
