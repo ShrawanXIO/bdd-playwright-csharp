@@ -1,3 +1,4 @@
+@regression
 Feature: Add to cart 
 
     Background:
